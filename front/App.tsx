@@ -1,117 +1,61 @@
-/**
- * Sample React Native App
- * https://github.com/facebook/react-native
- *
- * @format
- */
+import React, { useState, useCallback } from 'react';
+import { StatusBar, SafeAreaView, StyleSheet } from 'react-native';
+import type { FinancialProduct } from './src/types/product';
+import { ErrorBoundary } from './src/components/ErrorBoundary';
+import { ProductListScreen } from './src/screens/ProductListScreen';
+import { ProductDetailScreen } from './src/screens/ProductDetailScreen';
+import { ProductFormScreen } from './src/screens/ProductFormScreen';
 
-import React from 'react';
-import type {PropsWithChildren} from 'react';
-import {
-  SafeAreaView,
-  ScrollView,
-  StatusBar,
-  StyleSheet,
-  Text,
-  useColorScheme,
-  View,
-} from 'react-native';
-
-import {
-  Colors,
-  DebugInstructions,
-  Header,
-  LearnMoreLinks,
-  ReloadInstructions,
-} from 'react-native/Libraries/NewAppScreen';
-
-type SectionProps = PropsWithChildren<{
-  title: string;
-}>;
-
-function Section({children, title}: SectionProps): React.JSX.Element {
-  const isDarkMode = useColorScheme() === 'dark';
-  return (
-    <View style={styles.sectionContainer}>
-      <Text
-        style={[
-          styles.sectionTitle,
-          {
-            color: isDarkMode ? Colors.white : Colors.black,
-          },
-        ]}>
-        {title}
-      </Text>
-      <Text
-        style={[
-          styles.sectionDescription,
-          {
-            color: isDarkMode ? Colors.light : Colors.dark,
-          },
-        ]}>
-        {children}
-      </Text>
-    </View>
-  );
-}
+type Screen =
+  | { name: 'list' }
+  | { name: 'detail'; product: FinancialProduct }
+  | { name: 'form'; mode: 'add' }
+  | { name: 'formEdit'; product: FinancialProduct };
 
 function App(): React.JSX.Element {
-  const isDarkMode = useColorScheme() === 'dark';
+  const [screen, setScreen] = useState<Screen>({ name: 'list' });
 
-  const backgroundStyle = {
-    backgroundColor: isDarkMode ? Colors.darker : Colors.lighter,
-  };
+  const goToList = useCallback(() => setScreen({ name: 'list' }), []);
+  const goToDetail = useCallback((product: FinancialProduct) => setScreen({ name: 'detail', product }), []);
+  const goToAddForm = useCallback(() => setScreen({ name: 'form', mode: 'add' }), []);
+  const goToEditForm = useCallback((product: FinancialProduct) => setScreen({ name: 'formEdit', product }), []);
 
   return (
-    <SafeAreaView style={backgroundStyle}>
-      <StatusBar
-        barStyle={isDarkMode ? 'light-content' : 'dark-content'}
-        backgroundColor={backgroundStyle.backgroundColor}
-      />
-      <ScrollView
-        contentInsetAdjustmentBehavior="automatic"
-        style={backgroundStyle}>
-        <Header />
-        <View
-          style={{
-            backgroundColor: isDarkMode ? Colors.black : Colors.white,
-          }}>
-          <Section title="Step One">
-            Edit <Text style={styles.highlight}>App.tsx</Text> to change this
-            screen and then come back to see your edits.
-          </Section>
-          <Section title="See Your Changes">
-            <ReloadInstructions />
-          </Section>
-          <Section title="Debug">
-            <DebugInstructions />
-          </Section>
-          <Section title="Learn More">
-            Read the docs to discover what to do next:
-          </Section>
-          <LearnMoreLinks />
-        </View>
-      </ScrollView>
-    </SafeAreaView>
+    <ErrorBoundary>
+      <SafeAreaView style={styles.container}>
+        <StatusBar barStyle="dark-content" backgroundColor="#ffffff" />
+        {screen.name === 'list' && (
+          <ProductListScreen onSelectProduct={goToDetail} onAdd={goToAddForm} />
+        )}
+        {screen.name === 'detail' && (
+          <ProductDetailScreen
+            product={screen.product}
+            onBack={goToList}
+            onEdit={goToEditForm}
+            onDeleteSuccess={goToList}
+          />
+        )}
+        {screen.name === 'form' && (
+          <ProductFormScreen mode="add" onSuccess={goToList} onCancel={goToList}
+           />
+        )}
+        {screen.name === 'formEdit' && (
+          <ProductFormScreen
+            mode="edit"
+            initialProduct={screen.product}
+            onSuccess={(updated) => goToDetail(updated ? { ...screen.product, ...updated } : screen.product)}
+            onCancel={() => goToDetail(screen.product)}
+          />
+        )}
+      </SafeAreaView>
+    </ErrorBoundary>
   );
 }
 
 const styles = StyleSheet.create({
-  sectionContainer: {
-    marginTop: 32,
-    paddingHorizontal: 24,
-  },
-  sectionTitle: {
-    fontSize: 24,
-    fontWeight: '600',
-  },
-  sectionDescription: {
-    marginTop: 8,
-    fontSize: 18,
-    fontWeight: '400',
-  },
-  highlight: {
-    fontWeight: '700',
+  container: {
+    flex: 1,
+    backgroundColor: '#ffffff',
   },
 });
 
