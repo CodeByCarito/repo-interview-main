@@ -3,7 +3,7 @@ import {
   View,
   Text,
   StyleSheet,
-  FlatList,
+  ScrollView,
   TextInput,
   TouchableOpacity,
 } from 'react-native';
@@ -71,23 +71,6 @@ export function ProductListScreen({ onSelectProduct, onAdd }: Props): React.JSX.
     onAdd();
   }, [onAdd]);
 
-  const renderItem = useCallback(
-    ({ item }: { item: FinancialProduct }) => (
-      <TouchableOpacity
-        style={styles.card}
-        onPress={() => onItemPress(item)}
-        activeOpacity={0.7}
-      >
-        <View style={styles.cardTextWrap}>
-          <Text style={styles.cardName}>{item.name}</Text>
-          <Text style={styles.cardId}>ID: {item.id}</Text>
-        </View>
-        <Text style={styles.chevron}>›</Text>
-      </TouchableOpacity>
-    ),
-    [onItemPress]
-  );
-
   if (loading) {
     return (
       <View style={styles.screen}>
@@ -105,7 +88,7 @@ export function ProductListScreen({ onSelectProduct, onAdd }: Props): React.JSX.
           <TextInput
             style={styles.searchInput}
             placeholder="Search..."
-            placeholderTextColor="#999"
+            placeholderTextColor="#666"
             value={search}
             onChangeText={setSearch}
           />
@@ -116,15 +99,37 @@ export function ProductListScreen({ onSelectProduct, onAdd }: Props): React.JSX.
         </View>
       ) : (
         <>
-          <FlatList
-            data={filtered}
-            keyExtractor={item => item.id}
-            renderItem={renderItem}
-            contentContainerStyle={styles.listContent}
-            ListEmptyComponent={
+          {filtered.length === 0 ? (
+            <View style={styles.emptyWrap}>
               <Text style={styles.emptyText}>No hay productos</Text>
-            }
-          />
+            </View>
+          ) : (
+            <ScrollView
+              style={styles.scroll}
+              contentContainerStyle={styles.scrollContent}
+              showsVerticalScrollIndicator={false}
+            >
+              <View style={styles.listBlock}>
+                {filtered.flatMap((item, i) => [
+                  <TouchableOpacity
+                    key={item.id}
+                    style={styles.row}
+                    onPress={() => onItemPress(item)}
+                    activeOpacity={0.7}
+                  >
+                    <View style={styles.rowTextWrap}>
+                      <Text style={styles.rowName}>{item.name}</Text>
+                      <Text style={styles.rowId}>ID: {item.id}</Text>
+                    </View>
+                    <Text style={styles.chevron}>›</Text>
+                  </TouchableOpacity>,
+                  i < filtered.length - 1 ? (
+                    <View key={`sep-${item.id}`} style={styles.divider} />
+                  ) : null,
+                ].filter(Boolean))}
+              </View>
+            </ScrollView>
+          )}
           <View style={styles.footer}>
             <TouchableOpacity style={styles.addButton} onPress={onAddPress}>
               <Text style={styles.addButtonText}>Agregar</Text>
@@ -144,12 +149,12 @@ const styles = StyleSheet.create({
   },
   mainContent: {
     flex: 1,
-    backgroundColor: '#ffffff',
+    backgroundColor: '#fff',
   },
   searchWrap: {
     paddingHorizontal: 16,
     paddingTop: 42,
-    paddingBottom: 16,
+    paddingBottom: 42,
   },
   searchInput: {
     borderWidth: 1,
@@ -169,41 +174,58 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: '#666',
   },
-  listContent: {
-    padding: 16,
+  scroll: {
+    flex: 1,
+  },
+  scrollContent: {
+    paddingHorizontal: 16,
     paddingBottom: 100,
   },
-  card: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    padding: 16,
+  listBlock: {
     backgroundColor: '#fff',
+    marginHorizontal: 0,
     borderRadius: 4,
     borderWidth: 1,
     borderColor: '#e8e8e8',
-    marginBottom: 12,
+    paddingHorizontal: 16,
+    overflow: 'hidden',
   },
-  cardTextWrap: {
+  row: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: 14,
+    paddingHorizontal: 0,
+    backgroundColor: 'transparent',
+  },
+  rowTextWrap: {
     flex: 1,
   },
-  cardName: {
+  rowName: {
     fontSize: 16,
     fontWeight: '600',
     color: '#1a1a1a',
   },
-  cardId: {
+  rowId: {
     fontSize: 14,
     color: '#666',
     marginTop: 4,
   },
+  divider: {
+    height: 1,
+    backgroundColor: '#e8e8e8',
+  },
   chevron: {
-    fontSize: 20,
+    fontSize: 24,
     color: '#999',
+  },
+  emptyWrap: {
+    flex: 1,
+    justifyContent: 'center',
+    paddingHorizontal: 16,
   },
   emptyText: {
     textAlign: 'center',
     color: '#666',
-    marginTop: 24,
   },
   errorWrap: {
     padding: 16,
@@ -219,8 +241,6 @@ const styles = StyleSheet.create({
     right: 0,
     padding: 16,
     backgroundColor: '#fff',
-    borderTopWidth: 1,
-    borderTopColor: '#e8e8e8',
   },
   addButton: {
     backgroundColor: '#FFDD03',
