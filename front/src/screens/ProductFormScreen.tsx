@@ -16,7 +16,6 @@ import { NavBar } from '../components/NavBar';
 import { FormInput } from '../components/FormInput';
 import { DateInput } from '../components/DateInput';
 import { toDisplayDate } from '../utils/dateFormat';
-import { useSwipeBack } from '../hooks/useSwipeBack';
 import {
   validateProductForm,
   hasFormErrors,
@@ -161,12 +160,10 @@ export function ProductFormScreen(): React.JSX.Element {
     setErrors({});
   }, [initialProduct]);
 
-  const swipeBack = useSwipeBack(() => navigation.goBack());
-
   return (
     <View style={styles.screen}>
       <NavBar />
-      <View style={styles.content} {...swipeBack.panHandlers}>
+      <View style={styles.content}>
       <KeyboardAvoidingView
         style={styles.keyboard}
         behavior={Platform.OS === 'ios' ? 'padding' : undefined}

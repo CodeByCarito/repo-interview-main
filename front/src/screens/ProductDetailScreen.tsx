@@ -14,7 +14,6 @@ import type { RootStackParamList, ProductDetailRouteProp } from '../navigation/t
 import { NavBar } from '../components/NavBar';
 import { toDisplayDate } from '../utils/dateFormat';
 import { DeleteModal } from '../components/DeleteModal';
-import { useSwipeBack } from '../hooks/useSwipeBack';
 import { productsApi } from '../api/products';
 
 const EMPTY_LOGO = require('../assets/images/empty-image.jpg');
@@ -65,12 +64,10 @@ export function ProductDetailScreen(): React.JSX.Element {
     }
   }, [product.id, closeDeleteModal, navigation]);
 
-  const swipeBack = useSwipeBack(() => navigation.goBack());
-
   return (
     <View style={styles.screen}>
       <NavBar />
-      <View style={styles.content} {...swipeBack.panHandlers}>
+      <View style={styles.content}>
       <ScrollView
         style={styles.scroll}
         contentContainerStyle={styles.scrollContent}
