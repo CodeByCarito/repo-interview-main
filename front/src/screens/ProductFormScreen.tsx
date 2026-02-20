@@ -10,6 +10,7 @@ import {
   Platform,
 } from 'react-native';
 import { useRoute, useNavigation } from '@react-navigation/native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import type { StackNavigationProp } from '@react-navigation/stack';
 import type { RootStackParamList, ProductFormRouteProp } from '../navigation/types';
 import { NavBar } from '../components/NavBar';
@@ -43,6 +44,7 @@ export function ProductFormScreen(): React.JSX.Element {
   const mode = params.mode;
   const initialProduct = params.mode === 'edit' ? params.product : null;
   const isEdit = mode === 'edit' && initialProduct != null;
+  const insets = useSafeAreaInsets();
 
   const [values, setValues] = useState<ProductFormValues>(emptyForm);
   const [errors, setErrors] = useState<FormErrors>({});
@@ -219,18 +221,20 @@ export function ProductFormScreen(): React.JSX.Element {
               </Text>
             </View>
           </View>
-          <TouchableOpacity
-            style={[styles.submitButton, submitting && styles.buttonDisabled]}
-            onPress={handleSubmit}
-            disabled={submitting || idChecking}
-          >
-            <Text style={styles.submitButtonText}>Enviar</Text>
-          </TouchableOpacity>
-          <TouchableOpacity style={styles.resetButton} onPress={handleReset}>
-            <Text style={styles.resetButtonText}>Reiniciar</Text>
-          </TouchableOpacity>
         </ScrollView>
       </KeyboardAvoidingView>
+      <View style={[styles.footer, { paddingBottom: insets.bottom + 16 }]}>
+        <TouchableOpacity
+          style={[styles.submitButton, submitting && styles.buttonDisabled]}
+          onPress={handleSubmit}
+          disabled={submitting || idChecking}
+        >
+          <Text style={styles.submitButtonText}>Enviar</Text>
+        </TouchableOpacity>
+        <TouchableOpacity style={styles.resetButton} onPress={handleReset}>
+          <Text style={styles.resetButtonText}>Reiniciar</Text>
+        </TouchableOpacity>
+      </View>
       </View>
     </View>
   );
@@ -249,7 +253,19 @@ const styles = StyleSheet.create({
   },
   scrollContent: {
     padding: 16,
-    paddingBottom: 40,
+    paddingBottom: 140,
+    maxWidth: 480,
+    alignSelf: 'center',
+    width: '100%',
+  },
+  footer: {
+    position: 'absolute',
+    bottom: 0,
+    left: 0,
+    right: 0,
+    paddingHorizontal: 16,
+    paddingTop: 16,
+    backgroundColor: '#fff',
     maxWidth: 480,
     alignSelf: 'center',
     width: '100%',
@@ -266,7 +282,6 @@ const styles = StyleSheet.create({
     paddingVertical: 14,
     borderRadius: 4,
     alignItems: 'center',
-    marginTop: 8,
   },
   buttonDisabled: {
     opacity: 0.6,

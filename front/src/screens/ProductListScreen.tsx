@@ -8,6 +8,7 @@ import {
   TouchableOpacity,
 } from 'react-native';
 import { useNavigation, useFocusEffect } from '@react-navigation/native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import type { StackNavigationProp } from '@react-navigation/stack';
 import type { FinancialProduct } from '../types/product';
 import type { RootStackParamList } from '../navigation/types';
@@ -19,6 +20,7 @@ type Nav = StackNavigationProp<RootStackParamList, 'ProductList'>;
 
 export function ProductListScreen(): React.JSX.Element {
   const navigation = useNavigation<Nav>();
+  const insets = useSafeAreaInsets();
   const [products, setProducts] = useState<FinancialProduct[]>([]);
   const [filtered, setFiltered] = useState<FinancialProduct[]>([]);
   const [search, setSearch] = useState('');
@@ -145,7 +147,7 @@ export function ProductListScreen(): React.JSX.Element {
               </View>
             </ScrollView>
           )}
-          <View style={styles.footer}>
+          <View style={[styles.footer, { paddingBottom: insets.bottom + 16 }]}>
             <TouchableOpacity style={styles.addButton} onPress={onAddPress}>
               <Text style={styles.addButtonText}>Agregar</Text>
             </TouchableOpacity>

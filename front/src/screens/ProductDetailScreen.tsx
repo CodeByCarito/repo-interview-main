@@ -9,6 +9,7 @@ import {
   Alert,
 } from 'react-native';
 import { useRoute, useNavigation, CommonActions } from '@react-navigation/native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import type { StackNavigationProp } from '@react-navigation/stack';
 import type { RootStackParamList, ProductDetailRouteProp } from '../navigation/types';
 import { NavBar } from '../components/NavBar';
@@ -26,6 +27,7 @@ export function ProductDetailScreen(): React.JSX.Element {
   const { params } = useRoute<ProductDetailRouteProp>();
   const product = params.product;
   const navigation = useNavigation<Nav>();
+  const insets = useSafeAreaInsets();
 
   const [deleteModalVisible, setDeleteModalVisible] = useState(false);
   const [logoError, setLogoError] = useState(false);
@@ -113,13 +115,15 @@ export function ProductDetailScreen(): React.JSX.Element {
             {toDisplayDate(product.date_revision) || product.date_revision}
           </Text>
         </View>
+      </ScrollView>
+      <View style={[styles.footer, { paddingBottom: insets.bottom + 16 }]}>
         <TouchableOpacity style={styles.editButton} onPress={handleEdit}>
           <Text style={styles.editButtonText}>Editar</Text>
         </TouchableOpacity>
         <TouchableOpacity style={styles.deleteButton} onPress={openDeleteModal}>
           <Text style={styles.deleteButtonText}>Eliminar</Text>
         </TouchableOpacity>
-      </ScrollView>
+      </View>
       </View>
       <DeleteModal
         visible={deleteModalVisible}
@@ -144,7 +148,7 @@ const styles = StyleSheet.create({
   },
   scrollContent: {
     padding: 16,
-    paddingBottom: 40,
+    paddingBottom: 140,
   },
   idTitle: {
     fontSize: 24,
@@ -197,12 +201,20 @@ const styles = StyleSheet.create({
     width: '100%',
     height: '100%',
   },
+  footer: {
+    position: 'absolute',
+    bottom: 0,
+    left: 0,
+    right: 0,
+    paddingHorizontal: 16,
+    paddingTop: 16,
+    backgroundColor: '#fff',
+  },
   editButton: {
     backgroundColor: '#E9ECF4',
     paddingVertical: 14,
     borderRadius: 4,
     alignItems: 'center',
-    marginTop: 16,
   },
   editButtonText: {
     fontSize: 16,
