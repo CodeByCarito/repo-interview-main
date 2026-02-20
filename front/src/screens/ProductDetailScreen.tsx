@@ -46,7 +46,9 @@ export function ProductDetailScreen({ product, onBack, onEdit, onDeleteSuccess }
     closeDeleteModal();
     try {
       await productsApi.delete(product.id);
-      onDeleteSuccess();
+      Alert.alert('Éxito', 'Producto eliminado correctamente', [
+        { text: 'OK', onPress: () => onDeleteSuccess() },
+      ]);
     } catch (e) {
       const message = e instanceof Error ? e.message : 'Error al eliminar';
       Alert.alert('Error', message);
