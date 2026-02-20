@@ -1,4 +1,4 @@
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useEffect } from 'react';
 import {
   View,
   Text,
@@ -15,6 +15,8 @@ import { DeleteModal } from '../components/DeleteModal';
 import { useSwipeBack } from '../hooks/useSwipeBack';
 import { productsApi } from '../api/products';
 
+const EMPTY_LOGO = require('../assets/images/empty-image.jpg');
+
 type Props = {
   product: FinancialProduct;
   onBack: () => void;
@@ -22,8 +24,16 @@ type Props = {
   onDeleteSuccess: () => void;
 };
 
+const hasValidLogo = (logo: string | undefined) => logo != null && String(logo).trim() !== '';
+
 export function ProductDetailScreen({ product, onBack, onEdit, onDeleteSuccess }: Props): React.JSX.Element {
   const [deleteModalVisible, setDeleteModalVisible] = useState(false);
+  const [logoError, setLogoError] = useState(false);
+  const showEmptyLogo = !hasValidLogo(product.logo) || logoError;
+
+  useEffect(() => {
+    setLogoError(false);
+  }, [product.id, product.logo]);
 
   const openDeleteModal = useCallback(() => setDeleteModalVisible(true), []);
   const closeDeleteModal = useCallback(() => setDeleteModalVisible(false), []);
@@ -66,14 +76,19 @@ export function ProductDetailScreen({ product, onBack, onEdit, onDeleteSuccess }
         <View style={styles.logoBlock}>
           <Text style={styles.logoLabel}>Logo</Text>
           <View style={styles.logoWrap}>
-            {product.logo ? (
+            {showEmptyLogo ? (
               <Image
-                source={{ uri: product.logo }}
+                source={EMPTY_LOGO}
                 style={styles.logoImage}
                 resizeMode="contain"
               />
             ) : (
-              <View style={styles.logoPlaceholder} />
+              <Image
+                source={{ uri: product.logo }}
+                style={styles.logoImage}
+                resizeMode="contain"
+                onError={() => setLogoError(true)}
+              />
             )}
           </View>
         </View>
@@ -172,12 +187,6 @@ const styles = StyleSheet.create({
   logoImage: {
     width: '100%',
     height: '100%',
-  },
-  logoPlaceholder: {
-    width: '100%',
-    height: '100%',
-    minHeight: 160,
-    backgroundColor: '#f0f0f0',
   },
   editButton: {
     backgroundColor: '#E9ECF4',
