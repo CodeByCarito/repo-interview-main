@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import {
   View,
   Text,
@@ -7,42 +7,57 @@ import {
   TextInput,
   TouchableOpacity,
 } from 'react-native';
+import { useNavigation, useFocusEffect } from '@react-navigation/native';
+import type { StackNavigationProp } from '@react-navigation/stack';
 import type { FinancialProduct } from '../types/product';
+import type { RootStackParamList } from '../navigation/types';
 import { NavBar } from '../components/NavBar';
 import { ProductListSkeleton } from '../components/ProductListSkeleton';
 import { productsApi } from '../api/products';
 
-type Props = {
-  onSelectProduct: (product: FinancialProduct) => void;
-  onAdd: () => void;
-};
+type Nav = StackNavigationProp<RootStackParamList, 'ProductList'>;
 
-export function ProductListScreen({ onSelectProduct, onAdd }: Props): React.JSX.Element {
+export function ProductListScreen(): React.JSX.Element {
+  const navigation = useNavigation<Nav>();
   const [products, setProducts] = useState<FinancialProduct[]>([]);
   const [filtered, setFiltered] = useState<FinancialProduct[]>([]);
   const [search, setSearch] = useState('');
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  const loadProducts = useCallback(async () => {
-    setLoading(true);
-    setError(null);
+  const hasLoadedOnce = useRef(false);
+
+  const loadProducts = useCallback(async (silent = false) => {
+    if (!silent) {
+      setLoading(true);
+      setError(null);
+    }
     try {
       const data = await productsApi.getAll();
       setProducts(data);
       setFiltered(data);
+      if (!silent) setError(null);
     } catch (e) {
-      setError(e instanceof Error ? e.message : 'Error al cargar productos');
-      setProducts([]);
-      setFiltered([]);
+      if (!silent) {
+        setError(e instanceof Error ? e.message : 'Error al cargar productos');
+        setProducts([]);
+        setFiltered([]);
+      }
     } finally {
-      setLoading(false);
+      if (!silent) setLoading(false);
     }
   }, []);
 
-  useEffect(() => {
-    loadProducts();
-  }, [loadProducts]);
+  useFocusEffect(
+    useCallback(() => {
+      if (hasLoadedOnce.current) {
+        loadProducts(true);
+      } else {
+        hasLoadedOnce.current = true;
+        loadProducts(false);
+      }
+    }, [loadProducts])
+  );
 
   useEffect(() => {
     const q = search.trim().toLowerCase();
@@ -62,14 +77,14 @@ export function ProductListScreen({ onSelectProduct, onAdd }: Props): React.JSX.
 
   const onItemPress = useCallback(
     (product: FinancialProduct) => {
-      onSelectProduct(product);
+      navigation.navigate('ProductDetail', { product });
     },
-    [onSelectProduct]
+    [navigation]
   );
 
   const onAddPress = useCallback(() => {
-    onAdd();
-  }, [onAdd]);
+    navigation.navigate('ProductForm', { mode: 'add' });
+  }, [navigation]);
 
   if (loading) {
     return (

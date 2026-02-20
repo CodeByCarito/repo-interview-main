@@ -1,7 +1,9 @@
 import { ProductFormScreen } from '../../src/screens/ProductFormScreen';
 
-const mockOnSuccess = jest.fn();
-const mockOnCancel = jest.fn();
+jest.mock('@react-navigation/native', () => ({
+  useNavigation: () => ({ navigate: jest.fn(), goBack: jest.fn() }),
+  useRoute: () => ({ params: { mode: 'add' as const } }),
+}));
 
 describe('ProductFormScreen', () => {
   beforeEach(() => {
@@ -15,13 +17,13 @@ describe('ProductFormScreen', () => {
     expect(typeof ProductFormScreen).toBe('function');
   });
 
-  it('accepts mode add and callbacks', () => {
+  it('accepts mode add via route params', () => {
     expect(ProductFormScreen).toBeDefined();
-    const props = { mode: 'add' as const, onSuccess: mockOnSuccess, onCancel: mockOnCancel };
-    expect(props.mode).toBe('add');
+    const params = { mode: 'add' as const };
+    expect(params.mode).toBe('add');
   });
 
-  it('accepts mode edit with initialProduct', () => {
+  it('accepts mode edit with product via route params', () => {
     const product = {
       id: 'uno',
       name: 'Product',
@@ -30,7 +32,8 @@ describe('ProductFormScreen', () => {
       date_release: '2025-01-01',
       date_revision: '2026-01-01',
     };
-    const props = { mode: 'edit' as const, initialProduct: product, onSuccess: mockOnSuccess, onCancel: mockOnCancel };
-    expect(props.initialProduct?.id).toBe('uno');
+    const params = { mode: 'edit' as const, product };
+    expect(params.mode).toBe('edit');
+    expect(params.product?.id).toBe('uno');
   });
 });

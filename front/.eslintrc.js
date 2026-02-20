@@ -6,7 +6,7 @@ module.exports = {
   },
   overrides: [
     {
-      files: ['jest.setup.js', 'jest.config.js', 'babel.config.js'],
+      files: ['.eslintrc.js', 'jest.setup.js', 'jest.config.js', 'babel.config.js', 'index.js'],
       parserOptions: {
         requireConfigFile: false,
       },

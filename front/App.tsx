@@ -1,59 +1,49 @@
-import React, { useState, useCallback } from 'react';
-import { StatusBar, SafeAreaView, StyleSheet } from 'react-native';
-import type { FinancialProduct } from './src/types/product';
+import React from 'react';
+import { View, StatusBar, StyleSheet } from 'react-native';
+import { GestureHandlerRootView } from 'react-native-gesture-handler';
+import { NavigationContainer } from '@react-navigation/native';
+import { createStackNavigator } from '@react-navigation/stack';
+import { SafeAreaProvider, initialWindowMetrics } from 'react-native-safe-area-context';
 import { ErrorBoundary } from './src/components/ErrorBoundary';
 import { ProductListScreen } from './src/screens/ProductListScreen';
 import { ProductDetailScreen } from './src/screens/ProductDetailScreen';
 import { ProductFormScreen } from './src/screens/ProductFormScreen';
+import type { RootStackParamList } from './src/navigation/types';
 
-type Screen =
-  | { name: 'list' }
-  | { name: 'detail'; product: FinancialProduct }
-  | { name: 'form'; mode: 'add' }
-  | { name: 'formEdit'; product: FinancialProduct };
+const Stack = createStackNavigator<RootStackParamList>();
 
 function App(): React.JSX.Element {
-  const [screen, setScreen] = useState<Screen>({ name: 'list' });
-
-  const goToList = useCallback(() => setScreen({ name: 'list' }), []);
-  const goToDetail = useCallback((product: FinancialProduct) => setScreen({ name: 'detail', product }), []);
-  const goToAddForm = useCallback(() => setScreen({ name: 'form', mode: 'add' }), []);
-  const goToEditForm = useCallback((product: FinancialProduct) => setScreen({ name: 'formEdit', product }), []);
-
   return (
-    <ErrorBoundary>
-      <SafeAreaView style={styles.container}>
-        <StatusBar barStyle="dark-content" backgroundColor="#ffffff" />
-        {screen.name === 'list' && (
-          <ProductListScreen onSelectProduct={goToDetail} onAdd={goToAddForm} />
-        )}
-        {screen.name === 'detail' && (
-          <ProductDetailScreen
-            product={screen.product}
-            onBack={goToList}
-            onEdit={goToEditForm}
-            onDeleteSuccess={goToList}
-          />
-        )}
-        {screen.name === 'form' && (
-          <ProductFormScreen mode="add" onSuccess={goToList} onCancel={goToList}
-           />
-        )}
-        {screen.name === 'formEdit' && (
-          <ProductFormScreen
-            mode="edit"
-            initialProduct={screen.product}
-            onSuccess={(updated) => goToDetail(updated ? { ...screen.product, ...updated } : screen.product)}
-            onCancel={() => goToDetail(screen.product)}
-          />
-        )}
-      </SafeAreaView>
-    </ErrorBoundary>
+    <GestureHandlerRootView style={styles.flex1}>
+      <ErrorBoundary>
+        <SafeAreaProvider initialMetrics={initialWindowMetrics} style={styles.flex1}>
+        <View style={styles.flex1}>
+          <StatusBar barStyle="dark-content" backgroundColor="#ffffff" />
+          <NavigationContainer>
+            <Stack.Navigator
+              screenOptions={{
+                headerShown: false,
+                cardStyle: styles.screen,
+              }}
+            >
+              <Stack.Screen name="ProductList" component={ProductListScreen} />
+              <Stack.Screen name="ProductDetail" component={ProductDetailScreen} />
+              <Stack.Screen name="ProductForm" component={ProductFormScreen} />
+            </Stack.Navigator>
+          </NavigationContainer>
+        </View>
+        </SafeAreaProvider>
+      </ErrorBoundary>
+    </GestureHandlerRootView>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
+  flex1: {
+    flex: 1,
+    backgroundColor: '#ffffff',
+  },
+  screen: {
     flex: 1,
     backgroundColor: '#ffffff',
   },

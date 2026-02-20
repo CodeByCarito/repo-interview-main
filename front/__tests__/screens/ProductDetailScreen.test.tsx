@@ -11,9 +11,10 @@ const product = {
   date_revision: '2026-01-01',
 };
 
-const mockOnBack = jest.fn();
-const mockOnEdit = jest.fn();
-const mockOnDeleteSuccess = jest.fn();
+jest.mock('@react-navigation/native', () => ({
+  useNavigation: () => ({ navigate: jest.fn(), goBack: jest.fn() }),
+  useRoute: () => ({ params: { product } }),
+}));
 
 describe('ProductDetailScreen', () => {
   beforeEach(() => {
@@ -24,26 +25,12 @@ describe('ProductDetailScreen', () => {
   });
 
   it('renders product details', () => {
-    const tree = renderer.create(
-      <ProductDetailScreen
-        product={product}
-        onBack={mockOnBack}
-        onEdit={mockOnEdit}
-        onDeleteSuccess={mockOnDeleteSuccess}
-      />
-    ).toJSON();
+    const tree = renderer.create(<ProductDetailScreen />).toJSON();
     expect(tree).toBeTruthy();
   });
 
   it('displays product name in content', () => {
-    const tree = renderer.create(
-      <ProductDetailScreen
-        product={product}
-        onBack={mockOnBack}
-        onEdit={mockOnEdit}
-        onDeleteSuccess={mockOnDeleteSuccess}
-      />
-    );
+    const tree = renderer.create(<ProductDetailScreen />);
     expect(tree.root.findByProps({ children: 'Tarjeta Crédito' })).toBeTruthy();
   });
 });

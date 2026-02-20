@@ -9,7 +9,9 @@ import {
   KeyboardAvoidingView,
   Platform,
 } from 'react-native';
-import type { FinancialProduct } from '../types/product';
+import { useRoute, useNavigation } from '@react-navigation/native';
+import type { StackNavigationProp } from '@react-navigation/stack';
+import type { RootStackParamList, ProductFormRouteProp } from '../navigation/types';
 import { NavBar } from '../components/NavBar';
 import { FormInput } from '../components/FormInput';
 import { DateInput } from '../components/DateInput';
@@ -25,12 +27,7 @@ import {
 } from '../validation/productForm';
 import { productsApi } from '../api/products';
 
-type Props = {
-  mode: 'add' | 'edit';
-  initialProduct?: FinancialProduct | null;
-  onSuccess: (updatedProduct?: FinancialProduct) => void;
-  onCancel: () => void;
-};
+type Nav = StackNavigationProp<RootStackParamList, 'ProductForm'>;
 
 const emptyForm: ProductFormValues = {
   id: '',
@@ -41,7 +38,11 @@ const emptyForm: ProductFormValues = {
   date_revision: '',
 };
 
-export function ProductFormScreen({ mode, initialProduct = null, onSuccess, onCancel }: Props): React.JSX.Element {
+export function ProductFormScreen(): React.JSX.Element {
+  const { params } = useRoute<ProductFormRouteProp>();
+  const navigation = useNavigation<Nav>();
+  const mode = params.mode;
+  const initialProduct = params.mode === 'edit' ? params.product : null;
   const isEdit = mode === 'edit' && initialProduct != null;
 
   const [values, setValues] = useState<ProductFormValues>(emptyForm);
@@ -113,7 +114,7 @@ export function ProductFormScreen({ mode, initialProduct = null, onSuccess, onCa
     }
     setSubmitting(true);
     try {
-      if (isEdit) {
+      if (isEdit && initialProduct) {
         const updated = await productsApi.update(values.id, {
           name: values.name,
           description: values.description,
@@ -122,12 +123,18 @@ export function ProductFormScreen({ mode, initialProduct = null, onSuccess, onCa
           date_revision: values.date_revision,
         });
         Alert.alert('Éxito', 'Producto actualizado correctamente', [
-          { text: 'OK', onPress: () => onSuccess(updated) },
+          {
+            text: 'OK',
+            onPress: () =>
+              navigation.navigate('ProductDetail', {
+                product: { ...initialProduct, ...updated },
+              }),
+          },
         ]);
       } else {
         await productsApi.create(values);
         Alert.alert('Éxito', 'Producto agregado correctamente', [
-          { text: 'OK', onPress: () => onSuccess() },
+          { text: 'OK', onPress: () => navigation.goBack() },
         ]);
       }
     } catch (e) {
@@ -136,7 +143,7 @@ export function ProductFormScreen({ mode, initialProduct = null, onSuccess, onCa
     } finally {
       setSubmitting(false);
     }
-  }, [values, isEdit, validateIdUniqueness, onSuccess]);
+  }, [values, isEdit, initialProduct, validateIdUniqueness, navigation]);
 
   const handleReset = useCallback(() => {
     if (initialProduct) {
@@ -154,7 +161,7 @@ export function ProductFormScreen({ mode, initialProduct = null, onSuccess, onCa
     setErrors({});
   }, [initialProduct]);
 
-  const swipeBack = useSwipeBack(onCancel);
+  const swipeBack = useSwipeBack(() => navigation.goBack());
 
   return (
     <View style={styles.screen}>

@@ -3,13 +3,16 @@ import { Text } from 'react-native';
 import renderer from 'react-test-renderer';
 import { ProductListScreen } from '../../src/screens/ProductListScreen';
 
-const mockOnSelectProduct = jest.fn();
-const mockOnAdd = jest.fn();
+const mockNavigate = jest.fn();
+
+jest.mock('@react-navigation/native', () => ({
+  useNavigation: () => ({ navigate: mockNavigate, goBack: jest.fn() }),
+  useRoute: () => ({ params: {} }),
+}));
 
 describe('ProductListScreen', () => {
   beforeEach(() => {
-    mockOnSelectProduct.mockClear();
-    mockOnAdd.mockClear();
+    mockNavigate.mockClear();
     (global.fetch as jest.Mock).mockResolvedValue({
       ok: true,
       text: () => Promise.resolve(JSON.stringify({ data: [] })),
@@ -17,9 +20,7 @@ describe('ProductListScreen', () => {
   });
 
   it('renders loading skeleton initially then list', async () => {
-    const tree = renderer.create(
-      <ProductListScreen onSelectProduct={mockOnSelectProduct} onAdd={mockOnAdd} />
-    );
+    const tree = renderer.create(<ProductListScreen />);
     expect(tree.toJSON()).toBeTruthy();
     await renderer.act(async () => {
       await Promise.resolve();
@@ -46,9 +47,7 @@ describe('ProductListScreen', () => {
           })
         ),
     });
-    const tree = renderer.create(
-      <ProductListScreen onSelectProduct={mockOnSelectProduct} onAdd={mockOnAdd} />
-    );
+    const tree = renderer.create(<ProductListScreen />);
     await renderer.act(async () => {
       await Promise.resolve();
     });

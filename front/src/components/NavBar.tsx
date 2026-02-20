@@ -1,18 +1,37 @@
 import React from 'react';
-import { View, Text, Image, StyleSheet } from 'react-native';
+import { Text, Image, StyleSheet, TouchableOpacity } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import { useNavigation, CommonActions } from '@react-navigation/native';
 
 const BANK_ICON = require('../assets/images/icon-bank.png');
 
 export function NavBar(): React.JSX.Element {
+  const navigation = useNavigation();
+
+  const goToHome = () => {
+    navigation.dispatch(
+      CommonActions.reset({
+        index: 0,
+        routes: [{ name: 'ProductList' }],
+      })
+    );
+  };
+
   return (
-    <View style={styles.container}>
-      <View style={styles.center}>
-          <Image source={BANK_ICON} style={styles.icon} resizeMode="contain" />
+    <SafeAreaView style={styles.container} edges={['top']}>
+      <TouchableOpacity
+        style={styles.center}
+        onPress={goToHome}
+        activeOpacity={0.7}
+        accessibilityRole="button"
+        accessibilityLabel="Volver a la lista de productos"
+      >
+        <Image source={BANK_ICON} style={styles.icon} resizeMode="contain" />
         <Text style={styles.title}>
           BANCO
         </Text>
-      </View>
-    </View>
+      </TouchableOpacity>
+    </SafeAreaView>
   );
 }
 

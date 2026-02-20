@@ -8,7 +8,9 @@ import {
   TouchableOpacity,
   Alert,
 } from 'react-native';
-import type { FinancialProduct } from '../types/product';
+import { useRoute, useNavigation, CommonActions } from '@react-navigation/native';
+import type { StackNavigationProp } from '@react-navigation/stack';
+import type { RootStackParamList, ProductDetailRouteProp } from '../navigation/types';
 import { NavBar } from '../components/NavBar';
 import { toDisplayDate } from '../utils/dateFormat';
 import { DeleteModal } from '../components/DeleteModal';
@@ -17,16 +19,15 @@ import { productsApi } from '../api/products';
 
 const EMPTY_LOGO = require('../assets/images/empty-image.jpg');
 
-type Props = {
-  product: FinancialProduct;
-  onBack: () => void;
-  onEdit: (product: FinancialProduct) => void;
-  onDeleteSuccess: () => void;
-};
+type Nav = StackNavigationProp<RootStackParamList, 'ProductDetail'>;
 
 const hasValidLogo = (logo: string | undefined) => logo != null && String(logo).trim() !== '';
 
-export function ProductDetailScreen({ product, onBack, onEdit, onDeleteSuccess }: Props): React.JSX.Element {
+export function ProductDetailScreen(): React.JSX.Element {
+  const { params } = useRoute<ProductDetailRouteProp>();
+  const product = params.product;
+  const navigation = useNavigation<Nav>();
+
   const [deleteModalVisible, setDeleteModalVisible] = useState(false);
   const [logoError, setLogoError] = useState(false);
   const showEmptyLogo = !hasValidLogo(product.logo) || logoError;
@@ -39,23 +40,32 @@ export function ProductDetailScreen({ product, onBack, onEdit, onDeleteSuccess }
   const closeDeleteModal = useCallback(() => setDeleteModalVisible(false), []);
 
   const handleEdit = useCallback(() => {
-    onEdit(product);
-  }, [onEdit, product]);
+    navigation.navigate('ProductForm', { mode: 'edit', product });
+  }, [navigation, product]);
 
   const handleDeleteConfirm = useCallback(async () => {
     closeDeleteModal();
     try {
       await productsApi.delete(product.id);
       Alert.alert('Éxito', 'Producto eliminado correctamente', [
-        { text: 'OK', onPress: () => onDeleteSuccess() },
+        {
+          text: 'OK',
+          onPress: () =>
+            navigation.dispatch(
+              CommonActions.reset({
+                index: 0,
+                routes: [{ name: 'ProductList' }],
+              })
+            ),
+        },
       ]);
     } catch (e) {
       const message = e instanceof Error ? e.message : 'Error al eliminar';
       Alert.alert('Error', message);
     }
-  }, [product.id, closeDeleteModal, onDeleteSuccess]);
+  }, [product.id, closeDeleteModal, navigation]);
 
-  const swipeBack = useSwipeBack(onBack);
+  const swipeBack = useSwipeBack(() => navigation.goBack());
 
   return (
     <View style={styles.screen}>
