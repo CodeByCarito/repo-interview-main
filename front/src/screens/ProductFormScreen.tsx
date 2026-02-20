@@ -28,7 +28,6 @@ import { productsApi } from '../api/products';
 type Props = {
   mode: 'add' | 'edit';
   initialProduct?: FinancialProduct | null;
-  /** Llamado al guardar. En edición puede recibir el producto actualizado para navegar al detalle. */
   onSuccess: (updatedProduct?: FinancialProduct) => void;
   onCancel: () => void;
 };
@@ -128,7 +127,7 @@ export function ProductFormScreen({ mode, initialProduct = null, onSuccess, onCa
       } else {
         await productsApi.create(values);
         Alert.alert('Éxito', 'Producto agregado correctamente', [
-          { text: 'OK', onPress: onSuccess },
+          { text: 'OK', onPress: () => onSuccess() },
         ]);
       }
     } catch (e) {
