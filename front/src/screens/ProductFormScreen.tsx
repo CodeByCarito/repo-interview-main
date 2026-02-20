@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useEffect } from 'react';
+import React, { useState, useCallback, useEffect, useRef } from 'react';
 import {
   View,
   Text,
@@ -50,6 +50,7 @@ export function ProductFormScreen(): React.JSX.Element {
   const [errors, setErrors] = useState<FormErrors>({});
   const [idChecking, setIdChecking] = useState(false);
   const [submitting, setSubmitting] = useState(false);
+  const scrollRef = useRef<ScrollView>(null);
 
   useEffect(() => {
     if (initialProduct) {
@@ -171,7 +172,11 @@ export function ProductFormScreen(): React.JSX.Element {
         behavior={Platform.OS === 'ios' ? 'padding' : undefined}
       >
         <ScrollView
-          contentContainerStyle={styles.scrollContent}
+          ref={scrollRef}
+          contentContainerStyle={[
+            styles.scrollContent,
+            { paddingBottom: insets.bottom + 140 },
+          ]}
           keyboardShouldPersistTaps="handled"
         >
           <Text style={styles.title}>Formulario de Registro</Text>
@@ -253,7 +258,6 @@ const styles = StyleSheet.create({
   },
   scrollContent: {
     padding: 16,
-    paddingBottom: 140,
     maxWidth: 480,
     alignSelf: 'center',
     width: '100%',
