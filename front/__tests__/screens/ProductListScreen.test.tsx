@@ -4,14 +4,29 @@ import renderer from 'react-test-renderer';
 import { ProductListScreen } from '../../src/screens/ProductListScreen';
 
 const mockNavigate = jest.fn();
+let mockFocusEffectRun = false;
 
 jest.mock('@react-navigation/native', () => ({
   useNavigation: () => ({ navigate: mockNavigate, goBack: jest.fn() }),
   useRoute: () => ({ params: {} }),
+  useFocusEffect: (cb: () => void) => {
+    if (!mockFocusEffectRun) {
+      mockFocusEffectRun = true;
+      setTimeout(cb, 0);
+    }
+  },
 }));
+jest.mock('react-native-safe-area-context', () => {
+  const RN = require('react-native');
+  return {
+    useSafeAreaInsets: () => ({ top: 0, bottom: 0, left: 0, right: 0 }),
+    SafeAreaView: RN.View,
+  };
+});
 
 describe('ProductListScreen', () => {
   beforeEach(() => {
+    mockFocusEffectRun = false;
     mockNavigate.mockClear();
     (global.fetch as jest.Mock).mockResolvedValue({
       ok: true,
@@ -23,7 +38,10 @@ describe('ProductListScreen', () => {
     const tree = renderer.create(<ProductListScreen />);
     expect(tree.toJSON()).toBeTruthy();
     await renderer.act(async () => {
-      await Promise.resolve();
+      await new Promise(r => setTimeout(r, 0));
+    });
+    await renderer.act(async () => {
+      await new Promise(r => setImmediate(r));
     });
     expect(tree.toJSON()).toBeTruthy();
   });
@@ -49,7 +67,7 @@ describe('ProductListScreen', () => {
     });
     const tree = renderer.create(<ProductListScreen />);
     await renderer.act(async () => {
-      await Promise.resolve();
+      await new Promise(r => setTimeout(r, 0));
     });
     await renderer.act(async () => {
       await new Promise(r => setImmediate(r));
